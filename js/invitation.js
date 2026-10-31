@@ -308,7 +308,47 @@ if (showEnvelopeIntro && dragEnvelope) {
   }
   render(0);
 }
-if (!showEnvelopeIntro) window.dispatchEvent(new Event('invitation-opened'));
+// A tagged sharing link works even when WhatsApp opens an external browser
+// without a referrer. Referrer/app detection also supports untagged visits.
+const invitationPreview = document.querySelector('#invitation-preview');
+const fromWhatsApp = new URLSearchParams(location.search).get('from') === 'whatsapp'
+  || /\bWhatsApp\b/i.test(navigator.userAgent)
+  || /^https:\/\/([a-z0-9-]+\.)*(whatsapp\.com|whatsapp\.net|wa\.me)(\/|$)/i.test(document.referrer);
+if (fromWhatsApp && invitationPreview && typeof invitationPreview.showModal === 'function') {
+  invitationPreview.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', () => invitationPreview.close());
+  });
+  // Backdrop clicks target the dialog itself. Require the gesture to start
+  // outside too, so dragging from the artwork does not dismiss the popup.
+  const outsidePreview = event => {
+    const bounds = invitationPreview.getBoundingClientRect();
+    return event.clientX < bounds.left || event.clientX > bounds.right
+      || event.clientY < bounds.top || event.clientY > bounds.bottom;
+  };
+  let startedOutsidePreview = false;
+  invitationPreview.addEventListener('pointerdown', event => {
+    startedOutsidePreview = event.target === invitationPreview && outsidePreview(event);
+  });
+  invitationPreview.addEventListener('pointercancel', () => { startedOutsidePreview = false; });
+  invitationPreview.addEventListener('click', event => {
+    if (startedOutsidePreview && event.target === invitationPreview && outsidePreview(event)) {
+      invitationPreview.close();
+    }
+    startedOutsidePreview = false;
+  });
+  invitationPreview.addEventListener('close', () => {
+    document.body.classList.remove('invitation-preview-open');
+    const target = showEnvelopeIntro ? dragEnvelope : document.querySelector('#couple-title');
+    if (target) {
+      target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    }
+    if (!showEnvelopeIntro) window.dispatchEvent(new Event('invitation-opened'));
+  }, { once: true });
+  document.body.classList.add('invitation-preview-open');
+  invitationPreview.showModal();
+  invitationPreview.focus({ preventScroll: true });
+} else if (!showEnvelopeIntro) window.dispatchEvent(new Event('invitation-opened'));
 
 // Explicit offset keeps the wedding instant the same for guests in every timezone.
 const countdown = document.querySelector('.wedding-countdown');

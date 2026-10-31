@@ -62,6 +62,8 @@ Set the canonical URL, `og:url` and the absolute `og:image` URL in `index.html` 
 
 Paste the public invitation URL into a WhatsApp chat, wait for its image preview to appear, then send the message with the link. Tapping the link preview opens the invitation. Sending the JPEG as a normal photo attachment does not make it a clickable website link. WhatsApp controls preview cropping, layout and caching, so the full portrait artwork may be cropped. The original `assets/save-the-date.jpg` is preserved.
 
+Share `https://initted.github.io/ourForever/?from=whatsapp` to show the current `assets/whatsapp-preview.jpg` in a centered popup over a blurred view of the website when guests open it. The complete artwork fits the screen without cropping. Guests can close it with ×, Escape, or a click/tap outside the popup; the website’s automatic navigation starts after dismissal. Untagged links also show the popup when the browser identifies WhatsApp through its user agent or referrer, but these signals are not always provided, so use the tagged link for reliable behavior. Regular direct visits keep the normal opening experience.
+
 `assets/fonts/` includes the self-hosted fonts and their SIL Open Font License files. No runtime requests to Google Fonts are required. All layout and responsive styling lives in `css/styles.css`.
 
 ## Export a WhatsApp-ready MP4
