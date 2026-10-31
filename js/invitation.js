@@ -1,5 +1,9 @@
 'use strict';
 const CONFIG = Object.freeze({
+  // Set to true to show the “A little secret for you” envelope before the invitation.
+  SHOW_ENVELOPE_INTRO: false,
+  // Show the auditorium in wedding details, timeline and calendar downloads.
+  SHOW_AUDITORIUM: false,
   // Add your own photo paths here; null preserves the supplied watercolor artwork.
   IMAGES: { hero: null, venue: null, closing: null },
   // Direct browser access to the public Drive folder; works on GitHub Pages.
@@ -15,9 +19,15 @@ const CONFIG = Object.freeze({
   }
 });
 document.documentElement.classList.add('js');
+document.querySelectorAll('[data-auditorium]').forEach(item => {
+  item.hidden = !CONFIG.SHOW_AUDITORIUM;
+});
 const envelope = document.querySelector('#envelope-intro');
 const invitationContent = document.querySelector('#invitation-content');
-if (envelope && invitationContent) invitationContent.inert = true;
+const showEnvelopeIntro = CONFIG.SHOW_ENVELOPE_INTRO && !!envelope && !!invitationContent;
+if (envelope) envelope.hidden = !showEnvelopeIntro;
+document.body.classList.toggle('envelope-closed', showEnvelopeIntro);
+if (invitationContent) invitationContent.inert = showEnvelopeIntro;
 const scenes = [...document.querySelectorAll('.scene')];
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const mobileLayout = matchMedia('(max-width: 700px)');
@@ -86,7 +96,7 @@ if (scenes.length) {
   }
   const hero = document.querySelector('[data-image="hero"]');
   window.addEventListener('invitation-opened', () => {
-    stopped = reduceMotion.matches || !mobileLayout.matches;
+    stopped = reduceMotion.matches || !mobileLayout.matches || !!location.hash;
     (hero ? hero.decode().catch(() => {}) : Promise.resolve()).then(() => {
       if (!stopped && scrollY < 10) timer = setTimeout(() => advance(1), 8500);
     });
@@ -112,7 +122,7 @@ function calendarText(kind) {
   ...(reception ? [] : ['DTEND:20261122T023500Z']),
   'SUMMARY:' + escapeICS(reception ? 'Wedding reception of Akhil & Parvathy' : 'Wedding of Akhil & Parvathy'),
   'LOCATION:' + escapeICS(reception ? 'Al Saj Arena, NH-47, Opp Infosys, Kulathoor, Trivandrum' : 'Attukal Bhagavathy Temple, Thiruvananthapuram'),
-  'DESCRIPTION:' + escapeICS(reception ? 'Reception from 5:30 pm onwards (India Standard Time). End time is not specified.' : 'Thalikettu, 7:45 AM – 8:05 AM (India Standard Time). Followed by Viswaroopam Auditorium, Attukal, Trivandrum.'),
+  'DESCRIPTION:' + escapeICS(reception ? 'Reception from 5:30 pm onwards (India Standard Time). End time is not specified.' : 'Thalikettu, 7:45 AM – 8:05 AM (India Standard Time).' + (CONFIG.SHOW_AUDITORIUM ? ' Followed by Viswaroopam Auditorium, Attukal, Trivandrum.' : '')),
   'END:VEVENT','END:VCALENDAR'];
   // Fold to 75 UTF-8 octets for standards-compliant calendar clients.
   return lines.map(line => { let out='', row='', length=0; for(const char of line){ const size=new TextEncoder().encode(char).length; if(length+size>75){out+=row+'\r\n';row=' ';length=1;}row+=char;length+=size;}return out+row; }).join('\r\n')+'\r\n';
@@ -212,7 +222,7 @@ if (journey) {
 
 // One pointer controls the card directly; only release starts a settling animation.
 const dragEnvelope = document.querySelector('#reveal-invitation');
-if (envelope && invitationContent && dragEnvelope) {
+if (showEnvelopeIntro && dragEnvelope) {
   let progress = 0, pointerId = null, startY = 0, startProgress = 0;
   let dragDistance = 180, revealed = false, settling = false, settleFrame;
   const card = envelope.querySelector('.secret-card');
@@ -298,6 +308,7 @@ if (envelope && invitationContent && dragEnvelope) {
   }
   render(0);
 }
+if (!showEnvelopeIntro) window.dispatchEvent(new Event('invitation-opened'));
 
 // Explicit offset keeps the wedding instant the same for guests in every timezone.
 const countdown = document.querySelector('.wedding-countdown');

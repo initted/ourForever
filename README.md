@@ -13,6 +13,8 @@ Every section spans the full browser width and is at least one viewport tall. De
 4. The day's timeline
 5. With love
 
+The invitation opens directly by default. To enable the “A little secret for you” envelope screen, set `CONFIG.SHOW_ENVELOPE_INTRO` to `true` in `js/invitation.js`. Set it to `false` to skip the screen.
+
 The couple supplied three milestones: meeting at college in 2018, getting together after college as their corporate careers began in 2022, and saying yes to marriage in 2026.
 
 ## Add your photographs
@@ -37,7 +39,7 @@ Edit `CONFIG` in `js/invitation.js`:
 - `MAPS.temple`, `MAPS.auditorium`, `MAPS.reception`: currently Google Maps searches using the supplied venue names. Replace with verified place links if desired.
 
 
-Calendar downloads are generated locally. Wedding: 22 November 2026, 07:45–08:05 IST (02:15–02:35 UTC). Reception: 17:30 IST (12:00 UTC), with no invented end time. The auditorium follows the ceremony; no unsupported exact start time is shown.
+Calendar downloads are generated locally. Wedding: 22 November 2026, 07:45–08:05 IST (02:15–02:35 UTC). Reception: 17:30 IST (12:00 UTC), with no invented end time. The auditorium is hidden by default. Set `CONFIG.SHOW_AUDITORIUM` to `true` in `js/invitation.js` to include Viswaroopam Auditorium in the wedding details, timeline and wedding calendar download. No exact auditorium start time is shown.
 
 ## Motion and accessibility
 
@@ -52,7 +54,13 @@ Run `python3 scripts/build.py` to copy public files to `dist/`. No package insta
 - **Vercel:** select Other, build command `python3 scripts/build.py`, output directory `dist`.
 - **GitHub Pages:** put the contents of `dist/` at the root of the `gh-pages` branch and select that branch under Settings → Pages. Paths are relative and work under repository subpaths.
 
-Before using a different host, change `og:image` in `index.html` to the absolute public URL of `assets/save-the-date.jpg`. The original Save the Date social card is preserved. WhatsApp preview crawlers need a public URL. A private Sites review link is owner-only, not a link for guests.
+### Share a tappable invitation image in WhatsApp
+
+`assets/whatsapp-preview.jpg` is the temporary preview image, copied from the existing Save the Date artwork. Replace it with the final JPEG when ready, and update `og:image:width`, `og:image:height` and `og:image:alt` in `index.html` to match. Increment the image URL version (`?v=1`) after replacing it, then rebuild and deploy.
+
+Set the canonical URL, `og:url` and the absolute `og:image` URL in `index.html` to the actual public invitation address before sharing. They are configured for `https://initted.github.io/ourForever/`. Rebuild with `python3 scripts/build.py` and deploy `dist/`. Both the page and image must be publicly accessible without signing in. Localhost and private review links cannot generate previews for guests.
+
+Paste the public invitation URL into a WhatsApp chat, wait for its image preview to appear, then send the message with the link. Tapping the link preview opens the invitation. Sending the JPEG as a normal photo attachment does not make it a clickable website link. WhatsApp controls preview cropping, layout and caching, so the full portrait artwork may be cropped. The original `assets/save-the-date.jpg` is preserved.
 
 `assets/fonts/` includes the self-hosted fonts and their SIL Open Font License files. No runtime requests to Google Fonts are required. All layout and responsive styling lives in `css/styles.css`.
 
